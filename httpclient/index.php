@@ -13,17 +13,3 @@ catch(Exception $e)
 {
     echo $e->getMessage();
 }
-
-
-
-
-
-
-function printData($array, $boolDie = true)
-{
-    echo '<pre>'; print_r($array); echo '<pre>';
-    if($boolDie)
-    {
-        die();
-    }
-}
