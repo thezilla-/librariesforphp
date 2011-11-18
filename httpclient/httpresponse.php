@@ -16,12 +16,12 @@
 class HttpResponse
 {
     /**
-     * var array $_arrHeader
+     * @var array $_arrHeader the response header as array
      */
     protected $_arrHeader = array();
 
     /**
-     * var string $_strContent
+     * @var string $_strContent the response content
      */
     protected $_strContent = '';
 

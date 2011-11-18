@@ -19,37 +19,37 @@ require('httpresponse.php');
 class HttpClient
 {
     /**
-     * var boolean $_boolSsl
+     * @var boolean $_boolSsl ssl or not
      */
     protected $_boolSsl = false;
 
     /**
-     * var string $_strHost
+     * @var string $_strHost the wished host
      */
     protected $_strHost = '';
 
     /**
-     *  var integer $_intPort
+     *  var integer $_intPort the port of the server
      */
     protected $_intPort = 80;
 
     /**
-     * var integer $_intConnectionTimeout
+     * @var integer $_intConnectionTimeout seconds to wait for etablishing a connection
      */
     protected $_intConnectionTimeout = 0;
 
     /**
-     * var resource $_resConnection
+     * @var resource $_resConnection connection resource
      */
     protected $_resConnection = null;
 
     /**
-     * var array $_arrRequestObjects
+     * @var array $_arrRequestObjects all done requests
      */
     protected $_arrRequestObjects = array();
 
     /**
-     * var array $_arrResponseObjects
+     * @var array $_arrResponseObjects all get responses
      */
     protected $_arrResponseObjects = array();
 

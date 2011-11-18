@@ -16,32 +16,32 @@
 class HttpRequest
 {
     /**
-     * var string $_strHost
+     * @var string $_strHost the wished host
      */
     protected $_strHost = '';
 
     /**
-     * var string $_strPath
+     * @var string $_strPath the to call path
      */
     protected $_strPath = '';
 
     /**
-     * var array $_arrGet
+     * @var array $_arrGet $_GET values
      */
     protected $_arrGet = array();
 
     /**
-     * var array $_arrPost
+     * @var array $_arrPost $_POST values
      */
     protected $_arrPost = array();
 
     /**
-     * var array $_arrHeader
+     * @var array $_arrHeader header values
      */
     protected $_arrHeader = array();
 
     /**
-     * var string $_strRequest
+     * @var string $_strRequest the http request string
      */
     protected $_strRequest = '';
 
