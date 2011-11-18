@@ -5,9 +5,8 @@ require('httpclient.php');
 try
 {
     $objHttpClient = new HttpClient('http://dominik-zogg.ch');
-    $objRequestAndResponse = $objHttpClient->request('');
+    $objRequestAndResponse = $objHttpClient->request('suche.html?keywords=test');
     echo $objRequestAndResponse->response->getContent();
-    //printData($objRequestAndResponse);
 }
 catch(Exception $e)
 {

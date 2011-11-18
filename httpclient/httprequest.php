@@ -91,8 +91,7 @@ class HttpRequest
         // if theres a query string ($_GET)
         if(isset($arrPathAndQuery[1]))
         {
-            // use the query parser
-            $this->_arrGet = self::parseQuery($arrPathAndQuery[1]);
+            parse_str($arrPathAndQuery[1], $this->_arrGet);
         }
 
         // set all $_GET parameter
@@ -148,67 +147,6 @@ class HttpRequest
 
         // add another linebreaK
         $this->_strRequest .= "\r\n";
-    }
-
-    /**
-     * parseQuery
-     * @param string $strQuery the query string with all $_GET parameters
-     * @return array multidimensional array
-     */
-    public static function parseQuery($strQuery)
-    {
-        // to return array
-        $arrReturn = array();
-
-        // split get parts
-        $arrQueryParts = explode('&', $strQuery);
-
-        // foreach get part build array to add to return array
-        foreach($arrQueryParts as $strKeyValuePart)
-        {
-            $arrKeyValuePart = explode('=', $strKeyValuePart);
-            preg_match_all('/\[([^\]]+)\]/', $arrKeyValuePart[0], $arrMatches);
-
-            // if the get part is an http array like parameter['id']=test
-            if(isset($arrMatches[1]) && is_array($arrMatches[1]) && count($arrMatches[1]) > 0)
-            {
-                // get the first key for example parameter
-                $strFirstArrayKey = substr($arrKeyValuePart[0], 0 , strpos($arrKeyValuePart[0], '['));
-
-                // add the first key to the serialized array we build
-                $strSerializedArray = is_numeric($strFirstArrayKey) ? 'a:1:{i:' . $strFirstArrayKey . ';' : 'a:1:{s:' .strlen($strFirstArrayKey) . ':"' . $strFirstArrayKey . '";';
-
-                // foreach match add a new key to the serialized array we build
-                foreach($arrMatches[1] as $strArrarKey)
-                {
-                    $strSerializedArray .= is_numeric($strArrarKey) ? 'a:1:{i:' . $strArrarKey . ';' : 'a:1:{s:' .strlen($strArrarKey) . ':"' . $strArrarKey . '";';
-                }
-
-                // add the value to the serialized array we build
-                $strSerializedArray .= is_numeric($arrKeyValuePart[1]) ? 'i:' . $arrKeyValuePart[1] . ';' : 's:' .strlen($arrKeyValuePart[1]) . ':"' . $arrKeyValuePart[1] . '";';
-
-                // close all braces
-                foreach($arrMatches[1] as $strArrarKey)
-                {
-                    $strSerializedArray .= '}';
-                }
-
-                // add a brace for the first key
-                $strSerializedArray .= '}';
-
-                // build an array from the serialized array we build
-                $arrQueryPart = unserialize($strSerializedArray);
-
-                // add the array recursive to the rerutn array
-                $arrReturn = array_replace_recursive($arrReturn, $arrQueryPart);
-            }
-            else
-            {
-                // add the array recursive to the rerutn array
-                $arrReturn = array_replace_recursive($arrReturn, array($arrKeyValuePart[0] => $arrKeyValuePart[1]));
-            }
-        }
-        return($arrReturn);
     }
 
     /**
