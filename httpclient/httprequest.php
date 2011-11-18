@@ -115,7 +115,7 @@ class HttpRequest
         // add query string ($_GET)
         if(count($this->_arrGet) > 0)
         {
-            $this->_strRequest .= '?' . self::buildQueryString($this->_arrGet);
+            $this->_strRequest .= '?' . http_build_query($this->_arrGet);
         }
 
         // add protocoll
@@ -128,7 +128,7 @@ class HttpRequest
         $arrHeaders = array();
         if(count($this->_arrPost) > 0)
         {
-            $strPost = self::buildQueryString($this->_arrPost);
+            $strPost = http_build_query($this->_arrPost);
             $arrHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
             $arrHeaders['Content-Length'] = strlen($strPost);
         }
@@ -147,72 +147,5 @@ class HttpRequest
 
         // add another linebreaK
         $this->_strRequest .= "\r\n";
-    }
-
-    /**
-     * buildQueryString
-     * @param array $arrParameters the parameter array
-     * @return string prepared query string
-     */
-    public static function buildQueryString(array $arrParameters)
-    {
-        $strReturn = '';
-        $arrQueryPairs = array();
-        $arrRawQueryPairs = self::buildRawQueryPairs($arrParameters);
-        foreach($arrRawQueryPairs as $strRawKey => $strValue)
-        {
-            // clean key for example parameter_%%%%_entry_%%%%_id to parameter[entry][id]
-            $arrKeyParts = explode('_%%%%_', $strRawKey);
-            $intKeyPartCounter = 0;
-            $strKey = '';
-            foreach($arrKeyParts as $strKeyPart)
-            {
-                $strKey .= $intKeyPartCounter == 0 ? $strKeyPart : '[' . $strKeyPart . ']';
-                $intKeyPartCounter++;
-            }
-            $arrQueryPairs[] = $strKey . '=' . rawurlencode($strValue);
-        }
-        $strReturn = implode('&', $arrQueryPairs);
-        return($strReturn);
-    }
-
-    /**
-     * buildRawQueryPairs
-     * @param array $arrParameters the parameter array
-     * @return array raw parameters
-     */
-    public static function buildRawQueryPairs(array $arrParameters)
-    {
-        $arrReturn = array();
-        foreach($arrParameters as $strKey => $strValue)
-        {
-            if(is_array($strValue))
-            {
-                foreach($strValue as $strSubKey => $strSubValue)
-                {
-                    if(is_array($strSubValue))
-                    {
-
-                        $arrSubBuildQueryPairs = self::buildRawQueryPairs($strSubValue);
-                        foreach($arrSubBuildQueryPairs as $strSubQueryPairKey => $strSubQueryPairValue)
-                        {
-                            // merge keys of recursion for example parameter[entry][id] (parameter_%%%%_entry_%%%%_id)
-                            $arrReturn[$strKey . '_%%%%_' . $strSubKey . '_%%%%_' .$strSubQueryPairKey] = $strSubQueryPairValue;
-                        }
-                    }
-                    else
-                    {
-                        // simple pseudo array, more than one key like parameter[id] (parameter_%%%%_id) in this case
-                        $arrReturn[$strKey . '_%%%%_' . $strSubKey] = $strSubValue;
-                    }
-                }
-            }
-            else
-            {
-                // normal key pair (no pseudo array)
-                $arrReturn[$strKey] = $strValue;
-            }
-        }
-        return($arrReturn);
     }
 }
