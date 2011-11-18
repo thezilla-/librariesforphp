@@ -128,7 +128,7 @@ class HttpRequest
         $arrHeaders = array();
         if(count($this->_arrPost) > 0)
         {
-            $strPost = http_build_query($this->_arrPost);
+            $strPost = http_build_query($this->_arrPost);
             $arrHeaders['Content-Type'] = 'application/x-www-form-urlencoded';
             $arrHeaders['Content-Length'] = strlen($strPost);
         }
