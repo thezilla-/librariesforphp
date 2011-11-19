@@ -7,6 +7,7 @@ $strToParse = '{Blg Date=18.01.03 MType=0 Orig=1 {Bk AccId=11050 CAcc=div Flags=
 
 $taf = new taf2array();
 $taf->set($strToParse);
+echo $taf->getString();
 $arrToTest = $taf->getArray();
 printData($arrToTest, false);
 
