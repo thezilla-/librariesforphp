@@ -92,16 +92,6 @@ class saferpay
             'CAVV' => 'ans[28]',
         ),
     );
-    
-    /**
-     * @var array $_arrCondidtionMapping mapping conditions to regular expressions
-     */
-    protected $_arrCondidtionMapping = array
-    (
-        'a' => 'a-zA-Z ',
-        'n' => '0-9',
-        's' => '\-\_\:\;\/\\\<\>\.\=\?',
-    );
 
     /**
      * @var array $_arrSaferPayData saferpay data
@@ -261,31 +251,10 @@ class saferpay
         if(isset($this->_arrSaferPayParameters[$strAction][$strKey]))
         {
             // rewrite condition to regular expression
-            $strPattern = '/^([' . str_replace
-            (
-                array
-                (
-                    ']',
-                    '[',
-                    '..',
-                    'a',
-                    'n',
-                    's'
-                ),
-                array
-                (
-                    '}',
-                    ']{',
-                    '1,',
-                    $this->_arrCondidtionMapping['a'],
-                    $this->_arrCondidtionMapping['n'],
-                    $this->_arrCondidtionMapping['s'],
-                ),
-                $this->_arrSaferPayParameters[$strAction][$strKey]
-            ) . ')$/';
+            $strPattern = self::conditionToRegex($this->_arrSaferPayParameters[$strAction][$strKey]);
             
             // check if the value is ok
-            if(preg_match($strPattern, $strValue) !== false)
+            if(preg_match($strPattern, $strValue) == 1)
             {
                 $this->_arrSaferPayData[$strAction][$strKey] = $strValue;
                 return(true);
@@ -293,6 +262,41 @@ class saferpay
         }
         $this->_arrSaferPayInvalidData[$strAction][$strKey] = $strValue;
         return(false);
+    }
+    
+    /**
+     * conditionToRegex
+     * @param string $strCondition the condition to be converted into a regular expression
+     * @return string regular expression pattern
+     */
+    public static function conditionToRegex($strCondition)
+    {
+        //replace condition with matching regular expression
+        $strReplacedConditions = str_replace
+        (
+            array
+            (
+                ']',
+                '[',
+                '..',
+                'a',
+                'n',
+                's'
+            ),
+            array
+            (
+                '}',
+                ']{',
+                '1,',
+                'a-z ',
+                '0-9',
+                '\-\_\:\;\/\\\<\>\.\=\?',
+            ),
+            $strCondition
+        );
+        
+        // return full regular expression pattern
+        return('/^([' . $strReplacedConditions . ')$/i');
     }
     
     /**
