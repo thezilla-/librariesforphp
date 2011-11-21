@@ -5,7 +5,7 @@ require('ftpclient.php');
 
 try
 {
-    $objFTPClient = new FtpClient('ftp://<username>:<password>@dominik-zogg.ch:21');
+    $objFTPClient = new FtpClient('ftp://www.dominik-zogg.ch:<password>@dominik-zogg.ch:21');
 
     printData($objFTPClient);
 }

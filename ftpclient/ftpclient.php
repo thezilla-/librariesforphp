@@ -139,7 +139,7 @@ class FtpClient
         // get the connection response
         $this->_arrLog[] = array
         (
-            'response' => trim($this->_response()),
+            'response' => $this->_response(),
         );
 
         // login if needed
@@ -181,13 +181,13 @@ class FtpClient
         fwrite($this->_resConnection, $strRequest);
 
         // get response
-        $strResponse = $this->_response();
+        $arrResponse = $this->_response();
 
         // add to log
         $this->_arrLog[] = array
         (
             'request' => trim($strRequest),
-            'response' => trim($strResponse),
+            'response' => $arrResponse,
         );
 
         // return response
@@ -207,6 +207,25 @@ class FtpClient
             $strResponse .= $strResponsePart;
         }
         while(substr($strResponsePart, 3, 1) != ' ');
-        return($strResponse);
+
+        // check if theres a misspelled answer
+        if(!preg_match('/^[0-9]{3}/', $strResponse))
+        {
+            throw new Exception($strResponse);
+        }
+
+        $arrResponse = array
+        (
+            'code' => trim(substr($strResponse, 0, 3)),
+            'text' => trim(substr($strResponse, 3)),
+        );
+
+        // check if code 530
+        if($arrResponse['code'] == '530')
+        {
+            throw new Exception($arrResponse['code'] . ' ' . $arrResponse['text']);
+        }
+
+        return($arrResponse);
     }
 }
