@@ -130,7 +130,7 @@ class HttpClient
     public function request($strPathAndQuery, array $arrGet = array(), array $arrPost = array(), array $arrHeader = array())
     {
         // check if path and query string ist empty
-        $strPathAndQuery = !empty($strPathAndQuery) ? $strPathAndQuery : '/';
+        $strPathAndQuery = substr($strPathAndQuery, 0, 1) == '/' ? $strPathAndQuery: '/' . $strPathAndQuery;
 
         // creating request object
         $objRequest = new HttpRequest($this->_strHost, $strPathAndQuery, $arrGet, $arrPost, $arrHeader);
