@@ -167,7 +167,6 @@ class HttpClient
     }
 
     /**
-    /**
      * _subrequest
      * @param string $strSubRequest host, path and query
      * @param array $arrGet $_GET parameters
