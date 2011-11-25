@@ -60,10 +60,20 @@ class HttpResponse
     {
         return($this->_arrHeader['message']);
     }
+    
+    /**
+     * getInfo
+     * @return array response infos
+     */
+    public function getInfos()
+    {
+        return($this->_arrHeader['info']);
+    }
 
     /**
      * getInfo
-     * @return array response info
+     * @param string $key the wished info
+     * @return string response single info
      */
     public function getInfo($key)
     {
