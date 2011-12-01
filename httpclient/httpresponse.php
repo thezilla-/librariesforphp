@@ -16,9 +16,19 @@
 class HttpResponse
 {
     /**
+     * @var string $_strRawHeader the raw response
+     */
+    protected $_strRawHeader = '';
+
+    /**
      * @var array $_arrHeader the response header as array
      */
     protected $_arrHeader = array();
+    
+    /**
+     * @var string $_strRawContent the raw content
+     */
+    protected $_strRawContent = '';
 
     /**
      * @var string $_strContent the response content
@@ -33,14 +43,23 @@ class HttpResponse
     {
         // split header and content
         $intPositionofFirstTwoLineBreaks = strpos($strResponse, "\r\n\r\n");
-        $strHeader = substr($strResponse, 0, $intPositionofFirstTwoLineBreaks);
-        $strContent = substr($strResponse, $intPositionofFirstTwoLineBreaks + 4);
+        $this->_strRawHeader = substr($strResponse, 0, $intPositionofFirstTwoLineBreaks);
+        $this->_strRawContent = substr($strResponse, $intPositionofFirstTwoLineBreaks + 4);
 
         // call header parser
-        $this->_arrHeader = self::parseHeader($strHeader);
+        $this->_arrHeader = self::parseHeader($this->_strRawHeader);
 
         // call content parser
-        $this->_strContent = self::parseContent($this->_arrHeader, $strContent);
+        $this->_strContent = self::parseContent($this->_arrHeader, $this->_strRawContent);
+    }
+    
+    /**
+     * getRawHeader
+     * @return string raw response header
+     */
+    public function getRawHeader()
+    {
+        return($this->_strRawHeader);
     }
 
     /**
@@ -78,6 +97,15 @@ class HttpResponse
     public function getInfo($key)
     {
         return($this->_arrHeader['info'][$key]);
+    }
+    
+    /**
+     * getRawContent
+     * @return string raw response content
+     */
+    public function getRawContent()
+    {
+        return($this->_strRawContent);
     }
 
     /**
