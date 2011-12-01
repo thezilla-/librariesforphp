@@ -154,7 +154,31 @@ class HttpResponse
             {
                 throw new Exception("Invalid header line: {$strHeaderLine} !");
             }
-            $arrReturn['info'][$arrMatches[1]] = trim($arrMatches[2]);
+            
+            // if there is still a header line
+            if(isset($arrReturn['info'][$arrMatches[1]]))
+            {
+                // if its allready an array
+                if(is_array($arrReturn['info'][$arrMatches[1]]))
+                {
+                    $arrReturn['info'][$arrMatches[1]][] = trim($arrMatches[2]);
+                }
+                else
+                {
+                    // merge from existing string to array
+                    $strExistingValue = $arrReturn['info'][$arrMatches[1]];
+                    $arrReturn['info'][$arrMatches[1]] = array();
+                    $arrReturn['info'][$arrMatches[1]][] = $strExistingValue;
+                    
+                    // add new header line to the array
+                    $arrReturn['info'][$arrMatches[1]][] = trim($arrMatches[2]);
+                }
+            }
+            else
+            {
+                // handle a simple header line
+                $arrReturn['info'][$arrMatches[1]] = trim($arrMatches[2]);
+            }
         }
         return($arrReturn);
     }
