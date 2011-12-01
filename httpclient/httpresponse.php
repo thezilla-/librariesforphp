@@ -96,7 +96,11 @@ class HttpResponse
      */
     public function getInfo($key)
     {
-        return($this->_arrHeader['info'][$key]);
+        if(isset($this->_arrHeader['info'][$key]))
+        {
+            return($this->_arrHeader['info'][$key]);
+        }
+        return(false);
     }
     
     /**
