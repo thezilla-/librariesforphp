@@ -42,15 +42,11 @@ class HttpClient
      * @var resource $_resConnection connection resource
      */
     protected $_resConnection = null;
-    /**
-     * @var array $_arrRequestObjects all done requests
-     */
-    protected $_arrRequestObjects = array();
 
     /**
-     * @var array $_arrResponseObjects all get responses
+     * @var array $_arrLog all done requests
      */
-    protected $_arrResponseObjects = array();
+    protected $_arrLog = array();
 
     /**
      * __construct
@@ -128,12 +124,15 @@ class HttpClient
      */
     public function request($strPathAndQuery, array $arrGet = array(), array $arrPost = array(), array $arrHeader = array())
     {
+        // return object
+        $objReturn = new stdClass();
+        
         // check if path and query string ist empty
         $strPathAndQuery = substr($strPathAndQuery, 0, 1) == '/' ? $strPathAndQuery: '/' . $strPathAndQuery;
 
         // creating request object
         $objRequest = new HttpRequest($this->_strHost, $strPathAndQuery, $arrGet, $arrPost, $arrHeader);
-        $this->_arrRequestObjects[] = $objRequest;
+        $objReturn->request = $objRequest;
 
         // get request string
         $strRequestString = $objRequest->getRequest();
@@ -148,22 +147,20 @@ class HttpClient
 
         // creating response object
         $objResponse = new HttpResponse($strResponse);
-        $this->_arrResponseObjects[] = $objResponse;
+        $objReturn->response = $objResponse;
         
+        // add objreturn to log
+        $this->_arrLog[] = $objReturn;
 
         // if response code if 301 or 302 (redirect) do another request
-        if($objResponse->getCode() == 301 || $objResponse->getCode() == 302)
+        if($objResponse->getBaseInfo('code') == 301 || $objResponse->getBaseInfo('code') == 302)
         {
             // parse the location
             $this->_subrequest($objResponse->getInfo('Location'), $arrGet, $arrPost, $arrHeader);
         }
-
-        // get last request and response object
-        $objReturn = new stdClass();
-        $objReturn->request = end($this->_arrRequestObjects);
-        $objReturn->response = end($this->_arrResponseObjects);
-
-        return($objReturn);
+        
+        // return object
+        return(end($this->_arrLog));
     }
 
     /**
@@ -185,9 +182,6 @@ class HttpClient
         $objHttp->request($strSubRequestPathAndQuery, $arrGet, $arrPost, $arrHeader);
 
         // add requests and response from subhttpobject to this one
-        $this->_arrRequestObjects = array_merge($this->_arrRequestObjects, $objHttp->_arrRequestObjects);
-        $this->_arrResponseObjects = array_merge($this->_arrResponseObjects, $objHttp->_arrResponseObjects);
+        $this->_arrLog = array_merge($this->_arrLog, $objHttp->_arrLog);
     }
-    
-
 }
