@@ -42,12 +42,6 @@ class HttpClient
      * @var resource $_resConnection connection resource
      */
     protected $_resConnection = null;
-    
-    /**
-     * @var array $_arrCoookies all cookies
-     */
-    protected $_arrCoookies = array();
-
     /**
      * @var array $_arrRequestObjects all done requests
      */
@@ -156,12 +150,6 @@ class HttpClient
         $objResponse = new HttpResponse($strResponse);
         $this->_arrResponseObjects[] = $objResponse;
         
-        // set cookies
-        $arrCookies = $objResponse->getCookies();
-        if($arrCookies > 0)
-        {
-            $this->_arrCoookies = array_merge($this->_arrCoookies, $arrCookies);
-        }
 
         // if response code if 301 or 302 (redirect) do another request
         if($objResponse->getCode() == 301 || $objResponse->getCode() == 302)
@@ -197,7 +185,6 @@ class HttpClient
         $objHttp->request($strSubRequestPathAndQuery, $arrGet, $arrPost, $arrHeader);
 
         // add requests and response from subhttpobject to this one
-        $this->_arrCoookies = array_merge($this->_arrCoookies, $objHttp->_arrCoookies);
         $this->_arrRequestObjects = array_merge($this->_arrRequestObjects, $objHttp->_arrRequestObjects);
         $this->_arrResponseObjects = array_merge($this->_arrResponseObjects, $objHttp->_arrResponseObjects);
     }
