@@ -198,6 +198,7 @@ class HttpClient
         $objHttp->request($strSubRequestPathAndQuery, $arrGet, $arrPost, $arrHeader);
 
         // add requests and response from subhttpobject to this one
+        $this->_arrCoookies = array_merge($this->_arrCoookies, $objHttp->_arrCoookies);
         $this->_arrRequestObjects = array_merge($this->_arrRequestObjects, $objHttp->_arrRequestObjects);
         $this->_arrResponseObjects = array_merge($this->_arrResponseObjects, $objHttp->_arrResponseObjects);
     }
