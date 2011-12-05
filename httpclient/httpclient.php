@@ -158,7 +158,7 @@ class HttpClient
         
         // set cookies
         $arrRawCookie = $objResponse->getInfo('Set-Cookie');
-        if($arrCookie !== false)
+        if($arrRawCookie !== false)
         {
             $arrCookies = self::parseCookies($objResponse->getInfo('Set-Cookie'));
             $this->_arrCoookies = array_merge($this->_arrCoookies, $arrCookies);
