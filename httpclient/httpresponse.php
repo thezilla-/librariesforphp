@@ -26,6 +26,11 @@ class HttpResponse
     protected $_arrHeader = array();
     
     /**
+     * @var array $_arrCookies the responsed cookies
+     */
+    protected $_arrCookies = array();
+
+    /**
      * @var string $_strRawContent the raw content
      */
     protected $_strRawContent = '';
@@ -48,6 +53,12 @@ class HttpResponse
 
         // call header parser
         $this->_arrHeader = self::parseHeader($this->_strRawHeader);
+        
+        // call cookie parser
+        if(isset($this->_arrHeader['info']['Set-Cookie']))
+        {
+            $this->_arrCookies = self::parseCookies($this->_arrHeader['info']['Set-Cookie']);
+        }
 
         // call content parser
         $this->_strContent = self::parseContent($this->_arrHeader, $this->_strRawContent);
@@ -92,7 +103,7 @@ class HttpResponse
     /**
      * getInfo
      * @param string $key the wished info
-     * @return string response single info
+     * @return string|boolean response single info
      */
     public function getInfo($key)
     {
@@ -101,6 +112,15 @@ class HttpResponse
             return($this->_arrHeader['info'][$key]);
         }
         return(false);
+    }
+    
+    /**
+     * getCookies
+     * @return type array cookies
+     */
+    public function getCookies()
+    {
+        return($this->_arrCookies);
     }
     
     /**
@@ -181,6 +201,60 @@ class HttpResponse
             }
         }
         return($arrReturn);
+    }
+    
+    /**
+     * parseCookies
+     * @param array|string $arrRawCookies the raw cookies array or string
+     * @return array the clean parsed cookie array 
+     */
+    public static function parseCookies($arrRawCookies)
+    {
+        // empty cookie array
+        $arrCookies = array();
+        
+        // check if cookie is an array
+        if(is_array($arrRawCookies))
+        {
+            foreach($arrRawCookies as $strRawCookie)
+            {
+                // parse a single raw cookie
+                $arrCookies[] = self::parseCookie($strRawCookie);
+            }
+        }
+        else
+        {
+            // parse a single raw cookie
+            $arrCookies[] = self::parseCookie($arrRawCookies);
+        }
+        
+        // return the cookie array
+        return($arrCookies);
+    }
+    
+    /**
+     * parseCookie
+     * @param string $strCookie a raw cookie string
+     * @return array single cookie array 
+     */
+    public static function parseCookie($strCookie)
+    {
+        // empty cookie pair array
+        $arrCookiePairs = array();
+        
+        // get the raw pairs
+        $arrCookieComponents = explode(';', $strCookie);
+        
+        // foreach raw pair get key and value
+        foreach($arrCookieComponents as $strKeyToValue)
+        {
+            $strKey = trim(substr($strKeyToValue, 0, strpos($strKeyToValue, '=')));
+            $strValue = trim(substr($strKeyToValue, strpos($strKeyToValue, '=')+1));
+            $arrCookiePairs[$strKey] = $strValue;
+        }
+        
+        // return the pairs
+        return($arrCookiePairs);
     }
 
     /**
