@@ -24,11 +24,6 @@ class HttpResponse
      * @var array $_arrHeader the response header as array
      */
     protected $_arrHeader = array();
-    
-    /**
-     * @var array $_arrCookies the responsed cookies
-     */
-    protected $_arrCookies = array();
 
     /**
      * @var string $_strRawContent the raw content
@@ -53,12 +48,6 @@ class HttpResponse
 
         // call header parser
         $this->_arrHeader = self::parseHeader($this->_strRawHeader);
-        
-        // call cookie parser
-        if(isset($this->_arrHeader['info']['Set-Cookie']))
-        {
-            $this->_arrCookies = self::parseCookies($this->_arrHeader['info']['Set-Cookie']);
-        }
 
         // call content parser
         $this->_strContent = self::parseContent($this->_arrHeader, $this->_strRawContent);
@@ -74,21 +63,26 @@ class HttpResponse
     }
 
     /**
-     * getCode
-     * @return integer response code
+     * getBaseInfo
+     * @return array response baseinfos
      */
-    public function getCode()
+    public function getBaseInfos()
     {
-        return($this->_arrHeader['code']);
+        return($this->_arrHeader['baseinfo']);
     }
 
     /**
-     * getMessage
-     * @return string response message
+     * getBaseInfo
+     * @param string $key the wished baseinfo
+     * @return string|boolean response single baseinfo
      */
-    public function getMessage()
+    public function getBaseInfo($key)
     {
-        return($this->_arrHeader['message']);
+        if(isset($this->_arrHeader['baseinfo'][$key]))
+        {
+            return($this->_arrHeader['baseinfo'][$key]);
+        }
+        return(false);
     }
     
     /**
@@ -112,15 +106,6 @@ class HttpResponse
             return($this->_arrHeader['info'][$key]);
         }
         return(false);
-    }
-    
-    /**
-     * getCookies
-     * @return type array cookies
-     */
-    public function getCookies()
-    {
-        return($this->_arrCookies);
     }
     
     /**
@@ -148,113 +133,129 @@ class HttpResponse
      */
     public static function parseHeader($strHeader)
     {
-        $arrReturn = array();
-
         // split header lines
         $arrRawHeader = explode("\r\n", $strHeader);
-
-        // get protocoll code and message
-        preg_match('/^([^\s]+)\s([\d]+)\s(.*)$/', $arrRawHeader[0], $arrMatches);
+        
+        // get first line (protocol, code, message)
+        preg_match('/^([^\s]+)\s([\d]+)\s(.*)$/', array_shift($arrRawHeader), $arrMatches);
         if(!isset($arrMatches[3]) || empty($arrMatches[3]))
         {
             throw new Exception('Invalid protocol line!');
         }
-        $arrReturn['proto'] = $arrMatches[1];
-        $arrReturn['code'] = $arrMatches[2];
-        $arrReturn['message'] = trim($arrMatches[3]);
+        
+        // base information
+        $arrReturn = array
+        (
+            'baseinfo' => array
+            (
+                'protocol' => $arrMatches[1],
+                'code' => $arrMatches[2],
+                'message' => trim($arrMatches[3]),
+            ),
+        );
 
-        // remove first line
-        array_shift($arrRawHeader);
-
+        // add info to return array
+        $arrReturn['info'] = self::parseHeaderLines($arrRawHeader);
+        
+        // return the header array
+        return $arrReturn;
+    }
+    
+    /**
+     * parseHeaderLines
+     * @param array $arrRawHeader
+     * @return array header info array 
+     */
+    public static function parseHeaderLines($arrRawHeader)
+    {
+        $arrReturn = array();
+        
         // go through the other raw array elements
         foreach($arrRawHeader as $strHeaderLine)
         {
+            // get combinations like "key: value", can be "key: value" : to
             preg_match('/^([^\s]+):(.*)$/', $strHeaderLine, $arrMatches);
             if(!isset($arrMatches[2]) || empty($arrMatches[2]))
             {
-                throw new Exception("Invalid header line: {$strHeaderLine} !");
+                throw new Exception("Invalid header line: {$strHeaderLine}!");
             }
             
-            // if there is still a header line
-            if(isset($arrReturn['info'][$arrMatches[1]]))
+            // add parsed header line to return array
+            $arrReturn[$arrMatches[1]][] = self::parseSingleHeaderValue(trim($arrMatches[2]));
+        }
+        
+        // simplify header array (remove arrays)
+        foreach($arrReturn as $strKey => $arrValue)
+        {
+            if(count($arrReturn[$strKey]) == 1 && key($arrReturn[$strKey]) == 0)
             {
-                // if its allready an array
-                if(is_array($arrReturn['info'][$arrMatches[1]]))
-                {
-                    $arrReturn['info'][$arrMatches[1]][] = trim($arrMatches[2]);
-                }
-                else
-                {
-                    // merge from existing string to array
-                    $strExistingValue = $arrReturn['info'][$arrMatches[1]];
-                    $arrReturn['info'][$arrMatches[1]] = array();
-                    $arrReturn['info'][$arrMatches[1]][] = $strExistingValue;
-                    
-                    // add new header line to the array
-                    $arrReturn['info'][$arrMatches[1]][] = trim($arrMatches[2]);
-                }
-            }
-            else
-            {
-                // handle a simple header line
-                $arrReturn['info'][$arrMatches[1]] = trim($arrMatches[2]);
+                $arrReturn[$strKey] = $arrReturn[$strKey][0];
             }
         }
+        
+        // return the parsed header lines
         return($arrReturn);
     }
     
     /**
-     * parseCookies
-     * @param array|string $arrRawCookies the raw cookies array or string
-     * @return array the clean parsed cookie array 
+     * parseSingleHeaderValue
+     * @param string $strSingleHeaderLineValue
+     * @return array|string the header line parts 
      */
-    public static function parseCookies($arrRawCookies)
+    public static function parseSingleHeaderValue($strSingleHeaderLineValue)
     {
-        // empty cookie array
-        $arrCookies = array();
+        $arrReturn = array();
         
-        // check if cookie is an array
-        if(is_array($arrRawCookies))
+        // default set found seperator false
+        $strFoundSeperator = false;
+        
+        // seperator can be a semmicolon or a comma
+        $arrSeperatorSigns = array(';',',');
+        
+        foreach($arrSeperatorSigns as $strSeperator)
         {
-            foreach($arrRawCookies as $strRawCookie)
+            // search for the seperator and search for =
+            if(strpos($strSingleHeaderLineValue, $strSeperator) !== false && strpos($strSingleHeaderLineValue, '=') !== false)
             {
-                // parse a single raw cookie
-                $arrCookies[] = self::parseCookie($strRawCookie);
+                // seperator found
+                $strFoundSeperator = true;
+                
+                // explode the parts
+                $arrSingleHeaderLineValue = explode($strSeperator, $strSingleHeaderLineValue);
+                
+                // foreach combination
+                foreach($arrSingleHeaderLineValue as $strCombination)
+                {
+                    // explode the key from value
+                    $arrCombinationKeyToValue = explode('=', $strCombination);
+                    
+                    // if theres a key to value combination
+                    if(count($arrCombinationKeyToValue) > 1)
+                    {
+                        $arrReturn[trim($arrCombinationKeyToValue[0])] = trim($arrCombinationKeyToValue[1]);
+                    }
+                    else
+                    {
+                        $arrReturn[] = $strCombination;
+                    }
+                }
             }
         }
-        else
+        
+        // no seperator found
+        if(!$strFoundSeperator)
         {
-            // parse a single raw cookie
-            $arrCookies[] = self::parseCookie($arrRawCookies);
+            $arrReturn[] = $strSingleHeaderLineValue;
         }
         
-        // return the cookie array
-        return($arrCookies);
-    }
-    
-    /**
-     * parseCookie
-     * @param string $strCookie a raw cookie string
-     * @return array single cookie array 
-     */
-    public static function parseCookie($strCookie)
-    {
-        // empty cookie pair array
-        $arrCookiePairs = array();
-        
-        // get the raw pairs
-        $arrCookieComponents = explode(';', $strCookie);
-        
-        // foreach raw pair get key and value
-        foreach($arrCookieComponents as $strKeyToValue)
+        // simplify header array (remove arrays)
+        if(count($arrReturn) == 1 && key($arrReturn) == 0)
         {
-            $strKey = trim(substr($strKeyToValue, 0, strpos($strKeyToValue, '=')));
-            $strValue = trim(substr($strKeyToValue, strpos($strKeyToValue, '=')+1));
-            $arrCookiePairs[$strKey] = $strValue;
+            $arrReturn = $arrReturn[0];
         }
-        
-        // return the pairs
-        return($arrCookiePairs);
+
+        // return a single header value
+        return($arrReturn);
     }
 
     /**
