@@ -174,14 +174,14 @@ class HttpResponse
         foreach($arrRawHeader as $strHeaderLine)
         {
             // get combinations like "key: value", can be "key: value" : to
-            preg_match('/^([^\s]+):(.*)$/', $strHeaderLine, $arrMatches);
-            if(!isset($arrMatches[2]) || empty($arrMatches[2]))
+            preg_match('/^([^\s]+):(.*)$/', $strHeaderLine, $arrMatche);
+            if(!isset($arrMatche[2]) || empty($arrMatche[2]))
             {
                 throw new Exception("Invalid header line: {$strHeaderLine}!");
             }
             
             // add parsed header line to return array
-            $arrReturn[$arrMatches[1]][] = self::parseSingleHeaderValue(trim($arrMatches[2]));
+            $arrReturn[$arrMatche[1]][] = self::parseSingleHeaderValue(trim($arrMatche[2]));
         }
         
         // simplify header array (remove arrays)
@@ -223,6 +223,9 @@ class HttpResponse
                 // explode the parts
                 $arrSingleHeaderLineValue = explode($strSeperator, $strSingleHeaderLineValue);
                 
+                // key for keyless parts
+                $intKeyForKeyLessParts = 0;
+                
                 // foreach combination
                 foreach($arrSingleHeaderLineValue as $strCombination)
                 {
@@ -236,7 +239,8 @@ class HttpResponse
                     }
                     else
                     {
-                        $arrReturn[] = $strCombination;
+                        $arrReturn["##{$intKeyForKeyLessParts}##"] = $strCombination;
+                        $intKeyForKeyLessParts++;
                     }
                 }
             }
