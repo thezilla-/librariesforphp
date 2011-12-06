@@ -314,9 +314,9 @@ class saferpay
         $this->_arrRequestLog[] = $objRequestAndResponse;
         
         // check if the response code is 200
-        if($objRequestAndResponse->response->getCode() != 200)
+        if($objRequestAndResponse->response->getBaseInfo('code') != 200)
         {
-            throw new \Exception($objRequestAndResponse->response->getCode() . ': ' . $objRequestAndResponse->response->getContent());
+            throw new \Exception($objRequestAndResponse->response->getBaseInfo('code') . ': ' . $objRequestAndResponse->response->getContent());
         }
 
         // return response body
