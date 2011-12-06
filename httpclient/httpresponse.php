@@ -187,7 +187,7 @@ class HttpResponse
         // simplify header array (remove arrays)
         foreach($arrReturn as $strKey => $arrValue)
         {
-            if(count($arrReturn[$strKey]) == 1 && key($arrReturn[$strKey]) == 0)
+            if(count($arrReturn[$strKey]) == 1 && key($arrReturn[$strKey]) == 0)
             {
                 $arrReturn[$strKey] = $arrReturn[$strKey][0];
             }
@@ -253,7 +253,7 @@ class HttpResponse
         }
         
         // simplify header array (remove arrays)
-        if(count($arrReturn) == 1 && key($arrReturn) == 0)
+        if(count($arrReturn) == 1 && key($arrReturn) == 0)
         {
             $arrReturn = $arrReturn[0];
         }
