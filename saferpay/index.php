@@ -40,10 +40,11 @@ try
                     'LANGID'=> 'CH',
                 )
             );
+            $_SESSION['saferpay'] = $objSaferpay->getSerializedInstance();
             header("Location: {$strToCallUrl}");
             break;
     }
-    $_SESSION['saferpay'] = $objSaferpay->getSerializedInstance();
+    
 }
 catch(Exception $e)
 {
